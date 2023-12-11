@@ -77,7 +77,7 @@ void setupAP(void) {
   }
 
   delay(100);
-  WiFi.softAP("how2electronics", "");
+  WiFi.softAP("rotator", "");
 }
 
 void createWebServer() {
