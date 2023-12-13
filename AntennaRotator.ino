@@ -248,18 +248,27 @@ String processor(const String& var) {
   //Serial.println(var);
   if (var == "BUTTONPLACEHOLDER") {
     String buttons = "";
-    buttons += "<h4>Output - GPIO 14</h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"14\" " + outputState(14) + "><span class=\"slider\"></span></label>";
-    buttons += "<h4>Output - GPIO 12</h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"12\" " + outputState(12) + "><span class=\"slider\"></span></label>";
+    buttons += "<h4>Moving Right</h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"14\" " + outputState(14) + "><span class=\"slider\"></span></label>";
+    buttons += "<h4>Moving Left</h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"12\" " + outputState(12) + "><span class=\"slider\"></span></label>";
     return buttons;
   }
-  if (var == "DIRECTION") {
-    return String(potToHeading(currentAverage())) + String(" degrees, or " + String(currentAverage()));
+  if (var == "DESIRED_DEGREES") {
+    return String(desiredHeading);
   }
-  if (var == "DESIREDHEADING") {
-    return String(desiredHeading) + String(moving ? " and moving" : " not moving");
+  if (var == "MOVING") {
+    return String(moving ? "Moving" : "Not Moving");
+  }
+  if (var == "HEADING_DEGREES") {
+    if (potToHeading(currentAverage()) > 1000) {
+      return String("Rotator disconnected");
+    }
+    return String(potToHeading(currentAverage()));
+  }
+  if (var == "HEADING_RAW") {
+    return String(currentAverage());
   }
 
-  return String();
+  return String(); // default
 }
 
 String outputState(int output) {

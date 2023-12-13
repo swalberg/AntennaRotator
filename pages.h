@@ -15,14 +15,19 @@ const char index_html[] PROGMEM = R"rawliteral(
     .slider:before {position: absolute; content: ""; height: 52px; width: 52px; left: 8px; bottom: 8px; background-color: #fff; -webkit-transition: .4s; transition: .4s; border-radius: 3px}
     input:checked+.slider {background-color: #b30000}
     input:checked+.slider:before {-webkit-transform: translateX(52px); -ms-transform: translateX(52px); transform: translateX(52px)}
+    #status { background-color: #ccc; border-radius: 2px; }
+    #status span { padding-left: 25px;}
+    label.manualentry { display:block; padding-top: 15px; }
   </style>
 </head>
 <body>
-  <h2>ESP Web Server</h2>
+  <h2>Antenna Rotator</h2>
+
+  <div id="status"><span class="pointing">Current heading: %HEADING_DEGREES% (%HEADING_RAW%)</span><span class="desired">Desired is %DESIRED_DEGREES%</span><span class="moving">%MOVING%</span></div>
   %BUTTONPLACEHOLDER%
-  <div>Enter a heading <input type=text onChange="goTo(this);"></div>
-<p>Currently pointed to %DIRECTION%</p>
-<p>Desired heading is %DESIREDHEADING%</p>
+<label class="manualentry">
+  <input type="text" onChange="goTo(this);" placeholder="Heading" />
+</label>
 <script>function toggleCheckbox(element) {
   var xhr = new XMLHttpRequest();
   if(element.checked){ xhr.open("GET", "/update?output="+element.id+"&state=1", true); }
