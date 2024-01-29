@@ -175,7 +175,9 @@ void setupRoutes() {
     request->send_P(200, "text/html", index_html, processor);
     WebSerial.println("Root page request");
   });
-
+  server.on("/status.json", HTTP_GET, [](AsyncWebServerRequest* request) {
+    request->send_P(200, "text/html", status_json, processor);
+  });
   // Send a GET request to <ESP_IP>/update?output=<inputMessage1>&state=<inputMessage2>
   server.on("/update", HTTP_GET, [](AsyncWebServerRequest* request) {
     String inputMessage1;
@@ -206,7 +208,10 @@ void setupRoutes() {
     } else {
       heading = "No message sent";
     }
-    Serial.println("heading to " + heading);
+    WebSerial.printf("heading to %s", heading);
+    request->send(200, "text/plain", "OK");
+  });
+  server.on("/health", HTTP_GET, [](AsyncWebServerRequest* request) {
     request->send(200, "text/plain", "OK");
   });
 }
@@ -259,7 +264,7 @@ String processor(const String& var) {
     return String(moving ? "Moving" : "Not Moving");
   }
   if (var == "HEADING_DEGREES") {
-    if (potToHeading(currentAverage()) > 1000) {
+    if (currentAverage() < 640) {
       return String("Rotator disconnected");
     }
     return String(potToHeading(currentAverage()));
@@ -268,7 +273,7 @@ String processor(const String& var) {
     return String(currentAverage());
   }
 
-  return String(); // default
+  return String();  // default
 }
 
 String outputState(int output) {
@@ -280,21 +285,15 @@ String outputState(int output) {
 }
 /*
  Returns the current heading in degrees
- Current measurements are
- 450 - 644 / 360 - 670 / 270 - 703 / 180 - 735 / 90 - 772 / 0 - 814
  */
 int potToHeading(int a) {
-  if (a >= 772) {
-    return map(a, 814, 772, 0, 90);
-  } else if (a >= 735) {
-    return map(a, 772, 735, 90, 180);
-  } else if (a >= 703) {
-    return map(a, 735, 703, 180, 270);
-  } else if (a > 670) {
-    return map(a, 703, .670, 270, 360);
-  } else {
-    return map(a, 814, 670, 0, 359);
+  if (a > 816) {
+    return 0;
   }
+  if (a < 640) {
+    return 450;
+  }
+  return map(a, 816, 640, 0, 450);
 }
 
 int currentAverage() {
