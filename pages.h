@@ -16,14 +16,14 @@ const char index_html[] PROGMEM = R"rawliteral(
     input:checked+.slider {background-color: #b30000}
     input:checked+.slider:before {-webkit-transform: translateX(52px); -ms-transform: translateX(52px); transform: translateX(52px)}
     #status { background-color: #ccc; border-radius: 2px; }
-    #status span { padding-left: 25px;}
+    #status span.info { padding-left: 25px;}
     label.manualentry { display:block; padding-top: 15px; }
   </style>
 </head>
 <body>
   <h2>Antenna Rotator</h2>
 
-  <div id="status"><span class="pointing">Current heading: %HEADING_DEGREES% (%HEADING_RAW%)</span><span class="desired">Desired is %DESIRED_DEGREES%</span><span class="moving">%MOVING%</span></div>
+  <div id="status"><span class="info">Current heading: <span id="degrees"></span> (<span id="raw"></span>)</span><span class="info">Desired is <span id="setpoint"></span></span><span class="info"><span id="moving"></span></span></div>
   %BUTTONPLACEHOLDER%
 <label class="manualentry">
   <input type="text" onChange="goTo(this);" placeholder="Heading" />
@@ -39,7 +39,29 @@ function goTo(element) {
   xhr.open("GET", "/goto?heading="+element.value, true);
   xhr.send();
 }
+setInterval(function () {
+    var req = new XMLHttpRequest();
+    req.responseType = 'json';
+    req.open('GET', "/status.json", true);
+    req.onload  = function() {
+      var j = req.response;
+      document.getElementById("degrees").innerHTML = j.current_heading;
+      document.getElementById("raw").innerHTML = j.raw_heading;
+      document.getElementById("setpoint").innerHTML = j.setpoint;
+      document.getElementById("moving").innerHTML = j.moving;
+    };
+    req.send();
+  }, 2000);
 </script>
 </body>
 </html>
+)rawliteral";
+
+const char status_json[] PROGMEM = R"rawliteral(
+  {
+    "current_heading": %HEADING_DEGREES%,
+    "raw_heading": %HEADING_RAW%,
+    "setpoint": %DESIRED_DEGREES%,
+    "moving": "%MOVING%"
+  }
 )rawliteral";
