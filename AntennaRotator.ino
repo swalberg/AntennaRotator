@@ -23,7 +23,7 @@ bool moving = false;
 unsigned long startedMovingAtMillis;
 const unsigned long watchdogTimeoutMillis = 90 * 1000;  // timeout in ms
 
-WiFiUDP RLInfo;
+WiFiUDP UDPInfo;
 unsigned int localUdpPort = 12060;
 char incomingPacket[MAX_UDP_PACKET_SIZE + 1];
 TinyXML xml;
@@ -56,14 +56,14 @@ void setup() {
     WebSerial.msgCallback(receiveSerialMessage);
     server.begin();
     // Listener from RL
-    RLInfo.begin(localUdpPort);
+    UDPInfo.begin(localUdpPort);
     // prime the running average
     for (int i = 0; i < runningAverageSize; i++) {
       runningAverage.addValue(analogRead(A0));
       delay(25);
     }
     // set up xml processing
-    xml.init((uint8_t*)buffer, sizeof(buffer), &RL_XML_callback);
+    xml.init((uint8_t*)buffer, sizeof(buffer), &XML_callback);
 
   } else {  // not configured or can't connect
     Serial.println("Turning the HotSpot On");
@@ -87,7 +87,7 @@ void loop() {
     runningAverage.addValue(analogRead(A0));
     ArduinoOTA.handle();
   }
-  handleRLInfo();
+  handleXMLPacket();
 
   if (counter > 10000) {
     counter = 0;
@@ -226,10 +226,10 @@ void goTo(int heading) {
 
 
 // UDP processing of port 12060
-void handleRLInfo() {
-  int packetSize = RLInfo.parsePacket();
+void handleXMLPacket() {
+  int packetSize = UDPInfo.parsePacket();
   if (packetSize) {
-    int len = RLInfo.read(incomingPacket, MAX_UDP_PACKET_SIZE);
+    int len = UDPInfo.read(incomingPacket, MAX_UDP_PACKET_SIZE);
     xml.reset();
     for (int i = 0; i < len; i++) {
       xml.processChar(incomingPacket[i]);
@@ -237,14 +237,21 @@ void handleRLInfo() {
   }
 }
 
-void RL_XML_callback(uint8_t statusflags, char* tagName, uint16_t tagNameLen, char* data, uint16_t dataLen) {
-  if ((statusflags & STATUS_TAG_TEXT) && !strcasecmp(tagName, "/RotorCommand/TurnTo")) {
+void XML_callback(uint8_t statusflags, char* tagName, uint16_t tagNameLen, char* data, uint16_t dataLen) {
+  if (!(statusflags & STATUS_TAG_TEXT) ) {
+    return; // only care about getting the tag dat
+  }
+  if (!strcasecmp(tagName, "/RotorCommand/TurnTo")) {
     WebSerial.printf("Received UDP Packet to change to %s\n", data);
     goTo(atoi(data));
-  }
-  if ((statusflags & STATUS_TAG_TEXT) && !strcasecmp(tagName, "/Contest_RotorCommand/TurnTo")) {
+  } else if (!strcasecmp(tagName, "/Contest_RotorCommand/TurnTo")) {
     WebSerial.printf("Received UDP Contest Packet to change to %s\n", data);
     goTo(atoi(data));
+  } else if (!strcasecmp(tagName, "/N1MMRotor/goazi")) {
+    WebSerial.printf("Received N1MM Packet to change to %s\n", data);
+    goTo(atoi(data));
+  } else {
+    WebSerial.printf("Received something unexpected: %s\n", data);
   }
 }
 
