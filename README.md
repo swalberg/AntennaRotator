@@ -5,7 +5,7 @@ No circuit diagram right now, but this controls some relays in an antenna rotato
 At the moment it just listens on the web for manual moves or a bearing, or it'll listen on UDP port 12060 for RUMLogNG's rotator commands. N1MM+ works if you change the default port to 12060.
 
 ## Schematic
-![Schematic](schematic.png)
+![Schematic](schematic.jpg)
 
 The ESP8266 needs to have 64K of IRAM. A friend tried to use some of my code and his only had 32K so it wouldn't compile.
 
