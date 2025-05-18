@@ -46,6 +46,7 @@ bool testWifi(void) {
 }
 
 void launchConfiguration() {
+  inSetupMode = true;
   createWebServer();
   server.begin();
   setupAP();

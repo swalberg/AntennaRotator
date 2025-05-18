@@ -22,6 +22,7 @@ int desiredHeading = 0;
 bool moving = false;
 unsigned long startedMovingAtMillis;
 const unsigned long watchdogTimeoutMillis = 90 * 1000;  // timeout in ms
+bool inSetupMode = false;
 
 WiFiUDP UDPInfo;
 unsigned int localUdpPort = 12060;
@@ -120,6 +121,11 @@ void loop() {
       allStop();
       Serial.println("All stop!");
     }
+  }
+  // If we're in setup mode then reset after 5 minutes. There's a chance that there 
+  // was a wifi reset because of power and we're just sitting there.
+  if (inSetupMode && millis() > 1000 * 60 * 5) {
+    ESP.restart();
   }
 }
 
